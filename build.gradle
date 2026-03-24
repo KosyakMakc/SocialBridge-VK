@@ -1,0 +1,74 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group = 'io.github.kosyakmakc'
+version = System.getenv("VERSION") ?: '0.1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "gitea"
+        url = "https://git.kosyakmakc.ru/api/packages/kosyakmakc/maven"
+    }
+}
+
+dependencies {
+    compileOnly "com.j256.ormlite:ormlite-core:6.1"
+    compileOnly "com.j256.ormlite:ormlite-jdbc:6.1"
+    compileOnly "io.github.kosyakmakc:SocialBridge:0.10.1"
+    implementation "com.vk.api:sdk:1.0.16"
+    implementation "net.kyori:adventure-text-minimessage:4.25.0"
+}
+
+def targetJavaVersion = 21
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release.set(targetJavaVersion)
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+publishing {
+    // other settings of publication
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId = project.group.toString()
+                artifactId = project.name
+                version = System.getenv("VERSION") ?: project.version.toString()
+                from(components["java"])
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "Gitea"
+            url = uri("https://git.kosyakmakc.ru/api/packages/kosyakmakc/maven")
+
+            credentials(HttpHeaderCredentials) {
+                name = "Authorization"
+                value = "token " + System.getenv("REGISTRY_TOKEN")
+            }
+
+            authentication {
+                header(HttpHeaderAuthentication)
+            }
+        }
+    }
+}

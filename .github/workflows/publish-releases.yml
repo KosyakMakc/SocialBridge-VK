@@ -1,0 +1,36 @@
+name: publish releases of VK social platform API
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  publish-release:
+    name: Publish releases
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get latest tag
+        id: latest_tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+        with:
+          # Optional: Set to true to consider only tags in the shape of semver (e.g., v1.0.0, 1.2.3)
+          semver_only: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # publish releases
+      - name: Upload releases to Maven repository
+        env:
+          REGISTRY_TOKEN: ${{ secrets.MVN_PUBLISH_TOKEN }}
+          VERSION: ${{ steps.latest_tag.outputs.tag }}
+        run: |
+          ./gradlew :publish

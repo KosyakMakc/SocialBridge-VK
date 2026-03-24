@@ -1,0 +1,7 @@
+name: SocialBridge-VK
+version: '0.10.0'
+main: io.github.kosyakmakc.socialBridgeVk.paper.SocialBridgeVkPlugin
+api-version: '1.21'
+authors: [ kosyakmakc ]
+depend: [ SocialBridge ]
+folia-supported: true
