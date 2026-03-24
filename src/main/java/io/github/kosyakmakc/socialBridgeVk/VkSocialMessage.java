@@ -85,7 +85,7 @@ public class VkSocialMessage implements ISocialMessage {
 
     @Override
     public Identifier getId() {
-        return new Identifier(IdentifierType.Integer, messageId);
+        return new Identifier(IdentifierType.Integer, conversationMessageId);
     }
 
     public int getVkMessageId() {
