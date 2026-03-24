@@ -15,9 +15,7 @@ public class HeartbeatCommand extends SocialCommandBase {
 
     @Override
     public void execute(SocialCommandExecutionContext ctx, List<Object> args) {
-        ctx.getSocialMessage().sendReply("ответ на...", new HashMap<>());
-        var channelId = ctx.getSocialMessage().getChannelId();
-        ctx.getSocialPlatform().sendMessage(channelId, "напрямую", new HashMap<>());
+        ctx.getSocialMessage().sendReply("✅", new HashMap<>());
     }
 
 }
