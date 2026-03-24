@@ -9,13 +9,13 @@
 |----------------|----------------------------|-------------------------------------------------------------------------------|
 | /vk setToken   | SocialBridge.VK.setToken   | Save new token to SocialBridge configuration and reconnect bot with new token |
 | /vk status     | SocialBridge.VK.status     | Provide information about current connection bot to VK                        |
-| /vk getBotLink | SocialBridge.VK.getBotLink | Get direct link to this bot(public group) if token exist and bot connected    |
+| /vk getBotLink | SocialBridge.VK.getBotLink | Get direct link to this chat-bot(public group) if token exist and bot connected    |
 
-### Commands for VK:
+### Commands for social platforms:
 
 | Command literal      | Description                                                                   |
 |----------------------|-------------------------------------------------------------------------------|
-| /vk_heartbeat  | Check activity bot in VK |
+| /vk_heartbeat        | Check activity bot in VK |
 
 ## API for developers
 
