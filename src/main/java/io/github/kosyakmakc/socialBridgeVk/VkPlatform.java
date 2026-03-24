@@ -1,10 +1,8 @@
 package io.github.kosyakmakc.socialBridgeVk;
 
 import io.github.kosyakmakc.socialBridge.ISocialBridge;
-import io.github.kosyakmakc.socialBridge.Commands.SocialCommands.ISocialCommand;
 import io.github.kosyakmakc.socialBridge.ITransaction;
 import io.github.kosyakmakc.socialBridge.Modules.ISocialModule;
-import io.github.kosyakmakc.socialBridge.Modules.ITranslationsModule;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.ISocialMessage;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.ISocialPlatform;
 import io.github.kosyakmakc.socialBridge.SocialPlatforms.Identifier;
@@ -24,14 +22,11 @@ import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.AbstractMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
@@ -118,25 +113,19 @@ public class VkPlatform implements ISocialPlatform {
                         e.printStackTrace();
                         longpollHandler.stop();
                         client = null;
+                        botState = BotState.Stopped;
                         return false;
                     } catch (ClientException e) {
                         e.printStackTrace();
                         longpollHandler.stop();
                         client = null;
+                        botState = BotState.Stopped;
                         return false;
                     }
                 });
             }
             else {
                 return CompletableFuture.completedFuture(isSuccessStart);
-            }
-        })
-        .thenComposeAsync(isSuccessStart -> {
-            if (isSuccessStart) {
-                return updateCommandSuggestions();
-            }
-            else {
-                return CompletableFuture.completedFuture(false);
             }
         });
     }
@@ -283,7 +272,6 @@ public class VkPlatform implements ISocialPlatform {
                     .sendDeprecated(longpollHandler.getActor())
                         .peerId(peerId)
                         .message(message)
-                        //.replyTo(vkMessage.getVkMessageId())
                         .forward(new Forward()
                             .setIsReply(true)
                             .setPeerId(peerId)
@@ -379,115 +367,13 @@ public class VkPlatform implements ISocialPlatform {
     @Override
     public CompletableFuture<Void> connectModule(ISocialModule module) {
         connectedModules.add(module);
-        return updateCommandSuggestions().thenRun(() -> {}); // empty runnable for resolve return type from boolean to Void 
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public CompletableFuture<Void> disconnectModule(ISocialModule module) {
-        var isRemoved = connectedModules.remove(module);
-        if (isRemoved) {
-            return updateCommandSuggestions().thenRun(() -> {}); // empty runnable for resolve return type from boolean to Void
-        }
-        else {
-            return CompletableFuture.completedFuture(null);
-        }
-    }
-
-    // private static final Pattern TelegramValidCommandToken = Pattern.compile("^[a-z0-9_]{1,32}$");
-
-    private CompletableFuture<Boolean> updateCommandSuggestions() {
-        var languages = new HashSet<String>();
-        for (var module : connectedModules) {
-            if (module instanceof ITranslationsModule moduleWithTranslations) {
-                for (var translationSource : moduleWithTranslations.getTranslations()) {
-                    languages.add(translationSource.getLanguage());
-                }
-            }
-        }
-
-        @SuppressWarnings("unchecked")
-        var commandInfos = connectedModules
-            .stream()
-            .mapMulti((x, consumer) -> {
-                // var matcher = TelegramValidCommandToken.matcher(x.getName());
-                // if (!matcher.find()) {
-                //     logger.warning("module name '" + x.getName() + "' not valid for telegram suggestion, skips all his command from suggestion. But commands is keep working");
-                //     return;
-                // }
-
-                x.getSocialCommands().forEach(y -> consumer.accept(new AbstractMap.SimpleImmutableEntry<>(x, y)));
-            })
-            .map(x -> (Entry<ISocialModule, ISocialCommand>) x)
-            .map(pair -> {
-                // var finalName = pair.getKey().getName() + '_' + pair.getValue().getLiteral();
-                // var matcher = TelegramValidCommandToken.matcher(finalName);
-                // if (!matcher.find()) {
-                //     logger.warning("telegram command name '" + finalName + "' not valid for telegram suggestion, skips this command from suggestion. But command is keep working");
-                //     return null;
-                // }
-
-                if (pair.getValue().getDescription() == MessageKey.EMPTY) {
-                    return null;
-                }
-
-                return pair;
-            })
-            .filter(x -> x != null)
-            .toList();
-
-        return CompletableFuture
-            .allOf(languages.stream().map(x -> updateCommandSuggestions(x, commandInfos)).toArray(CompletableFuture[]::new))
-            .thenRun(() -> updateCommandSuggestions(null, commandInfos))
-            .thenApply(Void -> true);
-    }
-
-    private CompletableFuture<Boolean> updateCommandSuggestions(String languageCode, List<Entry<ISocialModule, ISocialCommand>> commands) {
-        if (getBotState() != BotState.Started) {
-            return CompletableFuture.completedFuture(false);
-        }
-
-        return CompletableFuture.completedFuture(false);
-        // @SuppressWarnings("unchecked")
-        // var tasks = (CompletableFuture<BotCommand>[]) commands
-        //     .stream()
-        //     .map(pair -> {
-        //         var finalName = pair.getKey().getName() + '_' + pair.getValue().getLiteral();
-
-        //         var localizationLanguage = languageCode != null
-        //                                     ? languageCode
-        //                                     : LocalizationService.defaultLocale;
-
-        //         return bridge.getLocalizationService()
-        //             .getMessage(localizationLanguage, pair.getValue().getDescription(), null)
-        //             .thenApply(description -> new BotCommand(finalName, description));
-        //     })
-        //     .toArray(CompletableFuture[]::new);
-
-        // return CompletableFuture
-        //     .allOf(tasks)
-        //     .thenCompose(Void -> {
-        //         var commandsInfo = Arrays
-        //             .stream(tasks)
-        //             .map(task -> {
-        //                 try {
-        //                     return task.get();
-        //                 } catch (InterruptedException | ExecutionException e) {
-        //                     e.printStackTrace();
-        //                     return null;
-        //                 }
-        //             })
-        //             .filter(commandInfo -> commandInfo != null)
-        //             .toList();
-
-        //         if (commandsInfo.isEmpty()) {
-        //             return CompletableFuture.completedFuture(true);
-        //         }
-        //         else {
-        //             var commandQuery = new SetMyCommands(commandsInfo);
-        //             commandQuery.setLanguageCode(languageCode);
-        //             return this.withRetries(() -> telegramClient.execute(commandQuery));
-        //         }
-        //     });
+        connectedModules.remove(module);
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
