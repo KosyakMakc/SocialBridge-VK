@@ -18,8 +18,9 @@ public class Russian implements ITranslationSource {
                 new LocalizationRecord(VkMessageKey.SET_TOKEN_DESCRIPTION.key(), "Установить новый токен боту ВК, Если бот подключен, то он будет перезагружен с новым токеном."),
                 new LocalizationRecord(VkMessageKey.SET_TOKEN_SUCCESS.key(), "<green>Новый токен сохранен и применен.</green>"),
                 new LocalizationRecord(VkMessageKey.SET_TOKEN_FAILED_CONFIG.key(), "<red>Не удалось сохранить токен в сервисе конфигураций.</red>"),
-                new LocalizationRecord(VkMessageKey.SET_TOKEN_FAILED_STOP_BOT.key(), "<red>Не удалось остановить бота ВК, новый токен сохранен, но не был применен.</red>"),
-                new LocalizationRecord(VkMessageKey.SET_TOKEN_FAILED_START_BOT.key(), "<red>Не удалось запустить бота ВК, новый токен сохранен, но не был применен.</red>"),
+
+                new LocalizationRecord(VkMessageKey.SET_TOKEN_FAILED_STOP_BOT.key(), "<red>Не удалось остановить бота ВК, попробуйте повторить операцию позже.</red>"),
+                new LocalizationRecord(VkMessageKey.SET_TOKEN_FAILED_START_BOT.key(), "<red>Не удалось запустить бота ВК, попробуйте повторить операцию позже.</red>"),
 
                 new LocalizationRecord(VkMessageKey.BOT_STATUS_DESCRIPTION.key(), "Узнать статус подключения бота ВК."),
                 new LocalizationRecord(VkMessageKey.BOT_STATUS_CONNECTING.key(), "<yellow>Бот ВК подключается...</yellow>"),
