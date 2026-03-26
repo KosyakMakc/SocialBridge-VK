@@ -1,5 +1,5 @@
 name: SocialBridge-VK
-version: '0.10.0'
+version: '0.10.1'
 main: io.github.kosyakmakc.socialBridgeVk.paper.SocialBridgeVkPlugin
 api-version: '1.21'
 authors: [ kosyakmakc ]
