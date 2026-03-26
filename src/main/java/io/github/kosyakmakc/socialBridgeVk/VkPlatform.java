@@ -65,6 +65,8 @@ public class VkPlatform implements ISocialPlatform {
     private Logger logger;
     private Random random;
 
+    private CompletableFuture<Boolean> startBotTask = null;
+
     public CompletableFuture<Boolean> startBot() {
         if (botState != BotState.Stopped) {
             return CompletableFuture.completedFuture(false);
@@ -73,7 +75,7 @@ public class VkPlatform implements ISocialPlatform {
         logger.info("VK bot starting...");
 
         botState = BotState.Starting;
-        return getBotToken(null)
+        startBotTask = getBotToken(null)
         .thenCompose(tokenDefinition -> {
             if (tokenDefinition.isBlank()) {
                 logger.info("Token missed, connect to VK canceled");
@@ -127,11 +129,21 @@ public class VkPlatform implements ISocialPlatform {
             else {
                 return CompletableFuture.completedFuture(isSuccessStart);
             }
+        })
+        .thenCompose(x -> {
+            startBotTask = null;
+            return CompletableFuture.completedFuture(x);
         });
+
+        return startBotTask;
     }
 
     public CompletableFuture<Boolean> stopBot() {
-        if (botState != BotState.Started) {
+        if (botState == BotState.Starting && startBotTask != null) {
+            startBotTask.cancel(true);
+            return CompletableFuture.completedFuture(false);
+        }
+        else if (botState != BotState.Started) {
             return CompletableFuture.completedFuture(false);
         }
 
@@ -343,6 +355,17 @@ public class VkPlatform implements ISocialPlatform {
             var maxRetries = getMaxRetry(null).join();
 
             while (retryCounter < maxRetries) {
+                if (retryCounter > 0) {
+                    var delaySeconds = (int) Math.pow(delay, retryCounter);
+                    logger.info("Retry attempt #" + retryCounter + "/" + maxRetries + " failed, waiting " + delaySeconds + " seconds");
+                    try {
+                        Thread.sleep(Duration.ofSeconds(delaySeconds));
+                    } catch (InterruptedException e1) {
+                        logger.info("Retry attempts canceled by interruption");
+                        return false;
+                    }
+                }
+
                 try {
                     if (callable.call()) {
                         return true;
@@ -352,14 +375,8 @@ public class VkPlatform implements ISocialPlatform {
                 }
 
                 retryCounter++;
-                try {
-                    var delaySeconds = (int) Math.pow(delay, retryCounter);
-                    Thread.sleep(Duration.ofSeconds(delaySeconds));
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                    return false;
-                }
             }
+            logger.info("All retry attempts failed");
             return false;
         });
     }
