@@ -72,7 +72,7 @@ public class LongPollingHandler extends GroupLongPollApi {
             }
         } catch (ArgumentFormatException e) {
             e.logTo(socialPlatform.getBridge().getLogger());
-            commandCtx.getSocialMessage().sendReply(e.getMessage(), new HashMap<String, String>());
+            commandCtx.getSocialMessage().sendReply(e.getMessageKey(), "ru", new HashMap<String, String>(), null);
             return true;
         }
         return false;
